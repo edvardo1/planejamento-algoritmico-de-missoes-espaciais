@@ -56,6 +56,32 @@ def carregar_dados():
     with open("bodies.json", "r", encoding="utf-8") as f:
         return json.load(f)["bodies"]
 
+class HuffmanNode:
+    def __init__(self, char, freq, esq=None, dir=None):
+        self.char = char
+        self.freq = freq
+        self.esq = esq
+        self.dir = dir
+
+def huffman(texto):
+    freq = {}
+    for c in texto:
+        freq[c] = freq.get(c, 0) + 1
+    nodes = [HuffmanNode(c, f) for c, f in freq.items()]
+    while len(nodes) > 1:
+        nodes.sort(key=lambda n: n.freq)
+        a = nodes.pop(0)
+        b = nodes.pop(0)
+        nodes.append(HuffmanNode(None, a.freq + b.freq, a, b))
+    codes = {}
+    def generate(node, code=""):
+        if node.char is not None:
+            codes[node.char] = code
+        else:
+            generate(node.esq, code + "0")
+            generate(node.dir, code + "1")
+    generate(nodes[0])
+    return codes
 
 import json
 
