@@ -9,7 +9,7 @@ def carregar_dados_api():
         with open(arq_cache, "r", encoding="utf-8") as arquivo:
             return json.load(arquivo)
 
-    url = "https://api.le-systeme-solaire.net/rest/bodies/?data=name,rel,bodyType,aroundPlanet"
+    url = "https://api.le-systeme-solaire.net/rest/bodies/?data=name,rel,bodyType"
 
     requisicao = Request(
         url,
