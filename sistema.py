@@ -189,7 +189,7 @@ def mostrar_huffman(texto):
     return resultado
 
 def carregar_dados_api():
-    url = "https://api.le-systeme-solaire.net/rest/bodies/?data=name,rel,bodyType"
+    url = "https://api.le-systeme-solaire.net/rest/bodies/?data=name,rel,bodyType,aroundPlanet"
     requisicao = Request(
         url,
         headers={
