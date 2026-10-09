@@ -363,10 +363,10 @@ def filtrar_tipo():
     print("total encontrados:", encontrados)
 
 def comprimir_corpo():
-    nome = input("Nome do corpo: ")
+    nome = input("nome do corpo: ")
     corpo = trie.pesquisa(nome)
     if corpo is None:
-        print("Corpo nao encontrado.")
+        print("corpo nao encontrado.")
         return
     detalhes = carregar_dados_corpo(corpo["rel"])
     texto = json.dumps(
