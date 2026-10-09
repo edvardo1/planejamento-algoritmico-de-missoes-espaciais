@@ -1,9 +1,116 @@
 import json
 from aquisicao import carregar_dados_api, carregar_dados_corpo
 
+tamanho_alfabeto = 49
+# essa funcao e essa constante global servem para que nao seja necessario usar o
+# dict para os filhos dos nos da trie, porque o uso do dict, por mais que nao
+# substitua a trie, complica um pouco a analize amortizada ja que nao sabemos a
+# implementacao do dict
+def indice_caractere(c):
+    if c == ' ':
+        return 0
+    elif c == "'":
+        return 1
+    elif c == '(':
+        return 2
+    elif c == ')':
+        return 3
+    elif c == '-':
+        return 4
+    elif c == '/':
+        return 5
+    elif c == '0':
+        return 6
+    elif c == '1':
+        return 7
+    elif c == '2':
+        return 8
+    elif c == '3':
+        return 9
+    elif c == '4':
+        return 10
+    elif c == '5':
+        return 11
+    elif c == '6':
+        return 12
+    elif c == '7':
+        return 13
+    elif c == '8':
+        return 14
+    elif c == '9':
+        return 15
+    elif c == 'a':
+        return 16
+    elif c == 'b':
+        return 17
+    elif c == 'c':
+        return 18
+    elif c == 'd':
+        return 19
+    elif c == 'e':
+        return 20
+    elif c == 'f':
+        return 21
+    elif c == 'g':
+        return 22
+    elif c == 'h':
+        return 23
+    elif c == 'i':
+        return 24
+    elif c == 'j':
+        return 25
+    elif c == 'k':
+        return 26
+    elif c == 'l':
+        return 27
+    elif c == 'm':
+        return 28
+    elif c == 'n':
+        return 29
+    elif c == 'o':
+        return 30
+    elif c == 'p':
+        return 31
+    elif c == 'q':
+        return 32
+    elif c == 'r':
+        return 33
+    elif c == 's':
+        return 34
+    elif c == 't':
+        return 35
+    elif c == 'u':
+        return 36
+    elif c == 'v':
+        return 37
+    elif c == 'w':
+        return 38
+    elif c == 'x':
+        return 39
+    elif c == 'y':
+        return 40
+    elif c == 'z':
+        return 41
+    elif c == 'è':
+        return 42
+    elif c == 'é':
+        return 43
+    elif c == 'ê':
+        return 44
+    elif c == 'ï':
+        return 45
+    elif c == 'ó':
+        return 46
+    elif c == 'œ':
+        return 47
+    elif c == 'š':
+        return 48
+    else:
+        return None
+
 class TrieNode:
     def __init__(self):
-        self.filhos = {}
+        self.filhos = [None] * tamanho_alfabeto
         self.conteudo = None
         self.end = False
 
@@ -16,43 +123,64 @@ class Trie:
         no = self.root
 
         for char in nome.lower():
-            if char not in no.filhos:
-                no.filhos[char] = TrieNode()
-            no = no.filhos[char]
+            indice = indice_caractere(char)
+
+            if indice is None:
+                raise ValueError("Caractere fora do alfabeto: " + repr(char))
+
+            if no.filhos[indice] is None:
+                no.filhos[indice] = TrieNode()
+
+            no = no.filhos[indice]
+
         no.end = True
         no.conteudo = conteudo
 
     def pesquisa(self, nome):
         no = self.root
         self.nos_visitados = 1
+
         for char in nome.lower():
-            if char not in no.filhos:
+            indice = indice_caractere(char)
+
+            if indice is None or no.filhos[indice] is None:
                 return None
-            no = no.filhos[char]
+
+            no = no.filhos[indice]
             self.nos_visitados += 1
+
         if no.end:
             return no.conteudo
+
         return None
-   
+
     def comeca_com(self, prefixo):
         no = self.root
         self.nos_visitados = 1
+
         for char in prefixo.lower():
-            if char not in no.filhos:
+            indice = indice_caractere(char)
+
+            if indice is None or no.filhos[indice] is None:
                 return []
-            no = no.filhos[char]
+
+            no = no.filhos[indice]
             self.nos_visitados += 1
+
         return self.coleta(no)
-   
+
     def coleta(self, no):
         bodies = []
+
         if no.end:
             bodies.append(no.conteudo)
-        for child in no.filhos.values():
-            self.nos_visitados += 1
-            bodies.extend(self.coleta(child))
-        return bodies
 
+        for child in no.filhos:
+            if child is not None:
+                self.nos_visitados += 1
+                bodies.extend(self.coleta(child))
+
+        return bodies
 
 class HuffmanNode:
     def __init__(self, char, freq, esq=None, dir=None):
