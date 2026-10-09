@@ -211,28 +211,104 @@ def carregar_dados_corpo(rel):
     with urlopen(requisicao) as resposta:
         return json.loads(resposta.read().decode("utf-8"))
 
+print("carregando dados")
 corpos = carregar_dados_api()
 
 trie = Trie()
 
 for corpo in corpos:
-    trie.insert(corpo["name"], corpo["rel"])
+    trie.insert(corpo["name"], corpo)
+
+def listar_corpos():
+    for corpo in corpos:
+        print(corpo["name"])
+
+
+def pesquisar_corpo():
+    nome = input("nome do corpo: ")
+    corpo = trie.pesquisa(nome)
+    if corpo:
+        print("nome:", corpo["name"])
+        print("url:", corpo["rel"])
+    else:
+        print("corpo nao encontrado.")
+
+def detalhes_corpo():
+    nome = input("Nome do corpo: ")
+    resultados = trie.comeca_com(nome)
+
+    exatos = [
+        corpo for corpo in resultados
+        if corpo["name"].lower() == nome.lower()
+    ]
+
+    if not exatos:
+        print("Corpo nao encontrado.")
+        return
+
+    corpo = carregar_dados_corpo(exatos[0]["rel"])
+
+    print("{")
+    for atributo, valor in corpo.items():
+        print("  " + atributo + ":", valor)
+    print("}")
+
+def filtrar_tipo():
+    tipo = input("tipo de corpo (Planet, Moon, Asteroid...): ").strip().lower()
+    encontrados = 0
+    for corpo in corpos:
+        if corpo.get("bodyType", "").lower() == tipo:
+            print(corpo["name"])
+            encontrados += 1
+    print("total encontrados:", encontrados)
+
+def comprimir_corpo():
+    nome = input("Nome do corpo: ")
+    corpo = trie.pesquisa(nome)
+    if corpo is None:
+        print("Corpo nao encontrado.")
+        return
+    detalhes = carregar_dados_corpo(corpo["rel"])
+    texto = json.dumps(
+        detalhes,
+        ensure_ascii=False,
+        separators=(",", ":")
+    )
+    mostrar_huffman(texto)
 
 def main():
     while True:
-        print("opcoes")
-        print("p. pesquisar por corpo")
+        print("l. listar corpos")
+        print("p. pesquisar por nome exato")
+        print("i. pesquisar por prefixo")
+        print("d. ver detalhes de um corpo")
+        print("f. filtrar por tipo")
+        print("h. comprimir dados com Huffman")
         print("q. sair")
-        i = input()
+
+        i = input("> ").lower()
+
         if i == "q":
             break
+        elif i == "l":
+            listar_corpos()
         elif i == "p":
-            nome = input("Nome do corpo: ")
-            resultados = trie.comeca_com(nome)
+            pesquisar_corpo()
+        elif i == "i":
+            prefixo = input("prefixo: ")
+            resultados = trie.comeca_com(prefixo)
+
             if resultados:
                 for corpo in resultados:
-                    print(corpo)
+                    print(corpo["name"])
             else:
-                print("Nenhum corpo encontrado.")
+                print("nenhum corpo encontrado.")
+            print("nos visitados:", trie.nos_visitados)
+        elif i == "d":
+            detalhes_corpo()
+        elif i == "f":
+            filtrar_tipo()
+        elif i == "h":
+            comprimir_corpo()
 
-print(carregar_dados_api())
+main()
