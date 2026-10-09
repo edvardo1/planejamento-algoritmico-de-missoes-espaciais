@@ -1,6 +1,5 @@
 import json
-import os
-from urllib.request import Request, urlopen
+from aquisicao import carregar_dados_api, carregar_dados_corpo
 
 class TrieNode:
     def __init__(self):
@@ -54,10 +53,6 @@ class Trie:
             bodies.extend(self.coleta(child))
         return bodies
 
-
-#def carregar_dados():
-#    with open("bodies.json", "r", encoding="utf-8") as f:
-#        return json.load(f)["bodies"]
 
 class HuffmanNode:
     def __init__(self, char, freq, esq=None, dir=None):
@@ -188,29 +183,6 @@ def mostrar_huffman(texto):
     print("(mostrando no maximo 200 bits)")
     return resultado
 
-def carregar_dados_api():
-    url = "https://api.le-systeme-solaire.net/rest/bodies/?data=name,rel,bodyType,aroundPlanet"
-    requisicao = Request(
-        url,
-        headers={
-            "Authorization": "Bearer " + os.environ["SOLAIRETOKEN"]
-        }
-    )
-    with urlopen(requisicao) as resposta:
-        dados = json.loads(resposta.read().decode("utf-8"))
-    return dados["bodies"]
-
-def carregar_dados_corpo(rel):
-    url = rel
-    requisicao = Request(
-        url,
-        headers={
-            "Authorization": "Bearer " + os.environ["SOLAIRETOKEN"]
-        }
-    )
-    with urlopen(requisicao) as resposta:
-        return json.loads(resposta.read().decode("utf-8"))
-
 print("carregando dados")
 corpos = carregar_dados_api()
 
@@ -311,4 +283,5 @@ def main():
         elif i == "h":
             comprimir_corpo()
 
-main()
+if __name__ == "__main__":
+    main()
