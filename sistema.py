@@ -1,3 +1,5 @@
+import json
+
 class TrieNode:
     def __init__(self):
         self.filhos = {}
@@ -44,6 +46,8 @@ class Trie:
         return self.coleta(no)
 
     def coleta(self, no):
+        self.nos_visitados = 0
+
         bodies = []
         if no.end:
             bodies.append(no.conteudo)
@@ -63,43 +67,149 @@ class HuffmanNode:
         self.esq = esq
         self.dir = dir
 
+
 def huffman(texto):
     freq = {}
+
     for c in texto:
         freq[c] = freq.get(c, 0) + 1
-    nodes = [HuffmanNode(c, f) for c, f in freq.items()]
+
+    if not freq:
+        return {
+            "frequencias": freq,
+            "arvore": None,
+            "codigos": {},
+            "codificado": "",
+            "bits_originais": 0,
+            "bits_comprimidos": 0,
+            "razao": 0
+        }
+
+    nodes = [
+        HuffmanNode(c, f)
+        for c, f in freq.items()
+    ]
+
     while len(nodes) > 1:
         nodes.sort(key=lambda n: n.freq)
+
         a = nodes.pop(0)
         b = nodes.pop(0)
-        nodes.append(HuffmanNode(None, a.freq + b.freq, a, b))
-    codes = {}
-    def generate(node, code=""):
-        if node.char is not None:
-            codes[node.char] = code
-        else:
-            generate(node.esq, code + "0")
-            generate(node.dir, code + "1")
-    generate(nodes[0])
-    return codes
 
-import json
+        pai = HuffmanNode(
+            None,
+            a.freq + b.freq,
+            a,
+            b
+        )
+
+        nodes.append(pai)
+
+    raiz = nodes[0]
+    codigos = {}
+
+    def gerar_codigos(no, codigo=""):
+        if no.char is not None:
+            codigos[no.char] = codigo if codigo else "0"
+            return
+
+        gerar_codigos(no.esq, codigo + "0")
+        gerar_codigos(no.dir, codigo + "1")
+
+    gerar_codigos(raiz)
+
+    codificado = "".join(codigos[c] for c in texto)
+
+    bits_originais = len(texto.encode("utf-8")) * 8
+    bits_comprimidos = len(codificado)
+
+    razao = (
+        bits_comprimidos / bits_originais
+        if bits_originais > 0
+        else 0
+    )
+
+    return {
+        "frequencias": freq,
+        "arvore": raiz,
+        "codigos": codigos,
+        "codificado": codificado,
+        "bits_originais": bits_originais,
+        "bits_comprimidos": bits_comprimidos,
+        "razao": razao
+    }
+
+
+def mostrar_arvore(no, nivel=0):
+    if no is None:
+        return
+
+    if no.char is not None:
+        print("  " * nivel + repr(no.char) +
+              " (" + str(no.freq) + ")")
+    else:
+        print("  " * nivel + "* (" + str(no.freq) + ")")
+
+    mostrar_arvore(no.esq, nivel + 1)
+    mostrar_arvore(no.dir, nivel + 1)
+
+
+def mostrar_huffman(texto):
+    resultado = huffman(texto)
+    print("\nfrequencias")
+    for char, freq in sorted(
+        resultado["frequencias"].items(),
+        key=lambda item: item[1],
+        reverse=True
+    ):
+        print(repr(char), ":", freq)
+
+    print("\narvore de huffman")
+    mostrar_arvore(resultado["arvore"])
+
+    print("\n=== codigos ===")
+    for char, codigo in sorted(
+        resultado["codigos"].items()
+    ):
+        print(repr(char), ":", codigo)
+
+    print("\ncompressao")
+    print("bits originais:", resultado["bits_originais"])
+    print("bits codificados:", resultado["bits_comprimidos"])
+
+    if resultado["bits_originais"] > 0:
+        percentual = resultado["razao"] * 100
+        economia = (1 - resultado["razao"]) * 100
+
+        print("tamanho relativo: {:.2f}%".format(percentual))
+        print("reducao teorica: {:.2f}%".format(economia))
+
+    print("\ntexto codificado:")
+    print(resultado["codificado"])
+
+    return resultado
 
 corpos = carregar_dados()
 
 trie = Trie()
 
 for corpo in corpos:
-    trie.insert(corpo["name"], corpo)
+    trie.insert(corpo["name"], corpo["rel"])
 
-corpo = trie.pesquisa("La Terre")
-
-print(corpo)
-print("Nós visitados:", trie.nos_visitados)
-
-resultados = trie.comeca_com("Mar")
-
-for corpo in resultados:
-    print(corpo["name"])
-
-print("Nós visitados:", trie.nos_visitados)
+def main():
+    while True:
+        print("opcoes")
+        print("p. pesquisar por corpo")
+        print("q. sair")
+        i = input()
+        if i == "q":
+            break
+        elif i == "p":
+            nome = input("Nome do corpo: ")
+            resultados = trie.comeca_com(nome)
+            if resultados:
+                for corpo in resultados:
+                    print(corpo)
+            else:
+                print("Nenhum corpo encontrado.")
+main()
