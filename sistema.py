@@ -1,4 +1,6 @@
 import json
+import os
+from urllib.request import Request, urlopen
 
 class TrieNode:
     def __init__(self):
@@ -56,9 +58,9 @@ class Trie:
         return bodies
 
 
-def carregar_dados():
-    with open("bodies.json", "r", encoding="utf-8") as f:
-        return json.load(f)["bodies"]
+#def carregar_dados():
+#    with open("bodies.json", "r", encoding="utf-8") as f:
+#        return json.load(f)["bodies"]
 
 class HuffmanNode:
     def __init__(self, char, freq, esq=None, dir=None):
@@ -189,27 +191,54 @@ def mostrar_huffman(texto):
 
     return resultado
 
-corpos = carregar_dados()
+def carregar_dados_api():
+    url = "https://api.le-systeme-solaire.net/rest/bodies/?data=name,rel"
+    requisicao = Request(
+        url,
+        headers={
+            "Authorization": "Bearer " + os.environ["SOLAIRETOKEN"]
+        }
+    )
+    with urlopen(requisicao) as resposta:
+        dados = json.loads(resposta.read().decode("utf-8"))
+    return dados["bodies"]
 
-trie = Trie()
+def carregar_dados_corpo(rel):
+    url = rel
+    requisicao = Request(
+        url,
+        headers={
+            "Authorization": "Bearer " + os.environ["SOLAIRETOKEN"]
+        }
+    )
+    with urlopen(requisicao) as resposta:
+        return json.loads(resposta.read().decode("utf-8"))
 
-for corpo in corpos:
-    trie.insert(corpo["name"], corpo["rel"])
+c = carregar_dados_corpo("https://api.le-systeme-solaire.net/rest/bodies/s2017j17")
+print(c)
 
-def main():
-    while True:
-        print("opcoes")
-        print("p. pesquisar por corpo")
-        print("q. sair")
-        i = input()
-        if i == "q":
-            break
-        elif i == "p":
-            nome = input("Nome do corpo: ")
-            resultados = trie.comeca_com(nome)
-            if resultados:
-                for corpo in resultados:
-                    print(corpo)
-            else:
-                print("Nenhum corpo encontrado.")
-main()
+#corpos = carregar_dados_api()
+#
+#trie = Trie()
+#
+#for corpo in corpos:
+#    trie.insert(corpo["name"], corpo["rel"])
+#
+#def main():
+#    while True:
+#        print("opcoes")
+#        print("p. pesquisar por corpo")
+#        print("q. sair")
+#        i = input()
+#        if i == "q":
+#            break
+#        elif i == "p":
+#            nome = input("Nome do corpo: ")
+#            resultados = trie.comeca_com(nome)
+#            if resultados:
+#                for corpo in resultados:
+#                    print(corpo)
+#            else:
+#                print("Nenhum corpo encontrado.")
+#
+#print(carregar_dados_api())
