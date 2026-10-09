@@ -152,9 +152,13 @@ def mostrar_arvore(no, nivel=0):
     mostrar_arvore(no.esq, nivel + 1)
     mostrar_arvore(no.dir, nivel + 1)
 
-
 def mostrar_huffman(texto):
     resultado = huffman(texto)
+    assert sum(resultado["frequencias"].values()) == len(texto)
+    assert sum(
+        resultado["frequencias"][c] * len(codigo)
+        for c, codigo in resultado["codigos"].items()
+    ) == resultado["bits_comprimidos"]
     print("\nfrequencias")
     for char, freq in sorted(
         resultado["frequencias"].items(),
@@ -162,20 +166,16 @@ def mostrar_huffman(texto):
         reverse=True
     ):
         print(repr(char), ":", freq)
-
     print("\narvore de huffman")
     mostrar_arvore(resultado["arvore"])
-
     print("\n=== codigos ===")
     for char, codigo in sorted(
         resultado["codigos"].items()
     ):
         print(repr(char), ":", codigo)
-
     print("\ncompressao")
     print("bits originais:", resultado["bits_originais"])
     print("bits codificados:", resultado["bits_comprimidos"])
-
     if resultado["bits_originais"] > 0:
         percentual = resultado["razao"] * 100
         economia = (1 - resultado["razao"]) * 100
@@ -184,12 +184,12 @@ def mostrar_huffman(texto):
         print("reducao teorica: {:.2f}%".format(economia))
 
     print("\ntexto codificado:")
-    print(resultado["codificado"])
-
+    print(resultado["codificado"][:200] + "..." if len(resultado["codificado"]) > 200 else resultado["codificado"])
+    print("(mostrando no maximo 200 bits)")
     return resultado
 
 def carregar_dados_api():
-    url = "https://api.le-systeme-solaire.net/rest/bodies/?data=name,rel"
+    url = "https://api.le-systeme-solaire.net/rest/bodies/?data=name,rel,bodyType"
     requisicao = Request(
         url,
         headers={
