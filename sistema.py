@@ -25,35 +25,32 @@ class Trie:
 
     def pesquisa(self, nome):
         no = self.root
-        self.nos_visitados = 0
+        self.nos_visitados = 1
         for char in nome.lower():
-            self.nos_visitados += 1
             if char not in no.filhos:
                 return None
             no = no.filhos[char]
-        self.nos_visitados += 1
+            self.nos_visitados += 1
         if no.end:
             return no.conteudo
         return None
-
+   
     def comeca_com(self, prefixo):
         no = self.root
-        self.nos_visitados = 0
-
+        self.nos_visitados = 1
         for char in prefixo.lower():
-            self.nos_visitados += 1
             if char not in no.filhos:
                 return []
             no = no.filhos[char]
+            self.nos_visitados += 1
         return self.coleta(no)
-
+   
     def coleta(self, no):
-        self.nos_visitados = 0
-
         bodies = []
         if no.end:
             bodies.append(no.conteudo)
         for child in no.filhos.values():
+            self.nos_visitados += 1
             bodies.extend(self.coleta(child))
         return bodies
 
@@ -214,31 +211,28 @@ def carregar_dados_corpo(rel):
     with urlopen(requisicao) as resposta:
         return json.loads(resposta.read().decode("utf-8"))
 
-c = carregar_dados_corpo("https://api.le-systeme-solaire.net/rest/bodies/s2017j17")
-print(c)
+corpos = carregar_dados_api()
 
-#corpos = carregar_dados_api()
-#
-#trie = Trie()
-#
-#for corpo in corpos:
-#    trie.insert(corpo["name"], corpo["rel"])
-#
-#def main():
-#    while True:
-#        print("opcoes")
-#        print("p. pesquisar por corpo")
-#        print("q. sair")
-#        i = input()
-#        if i == "q":
-#            break
-#        elif i == "p":
-#            nome = input("Nome do corpo: ")
-#            resultados = trie.comeca_com(nome)
-#            if resultados:
-#                for corpo in resultados:
-#                    print(corpo)
-#            else:
-#                print("Nenhum corpo encontrado.")
-#
-#print(carregar_dados_api())
+trie = Trie()
+
+for corpo in corpos:
+    trie.insert(corpo["name"], corpo["rel"])
+
+def main():
+    while True:
+        print("opcoes")
+        print("p. pesquisar por corpo")
+        print("q. sair")
+        i = input()
+        if i == "q":
+            break
+        elif i == "p":
+            nome = input("Nome do corpo: ")
+            resultados = trie.comeca_com(nome)
+            if resultados:
+                for corpo in resultados:
+                    print(corpo)
+            else:
+                print("Nenhum corpo encontrado.")
+
+print(carregar_dados_api())
